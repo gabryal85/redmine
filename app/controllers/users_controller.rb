@@ -41,31 +41,18 @@ class UsersController < ApplicationController
     @status = params[:status] ? params[:status].to_i : 1
     c = ARCondition.new(@status == 0 ? "status <> 0" : ["status = ?", @status])
 
-#    case params.each do |key, val|
-#    when key == 'mail'
-#
-#    end
+    #show user account based on multiple parameters
+    #login, firstname, lastname, mail
 
-    unless params[:user].blank?
-      user = "%#{params[:user].strip.downcase}%"
-      c << ["LOWER(login) LIKE ?", user]
+    cp_arr = ["login", "mail", "firstname", "lastname"];
+
+    params.each do |key, val|
+      if cp_arr.find{|e| e == key} && !params[key].blank?
+        instance_variable_set("@#{key}", "%#{val.strip.downcase}%")
+        c << ["LOWER(#{key}) LIKE ?", instance_variable_get("@#{key}")]
+      end
     end
 
-    unless params[:mail].blank?
-      mail = "%#{params[:mail].strip.downcase}%"
-      c << ["LOWER(mail) LIKE ?", mail]
-    end
-
-    unless params[:firstname].blank?
-      firstname = "%#{params[:firstname].strip.downcase}%"
-      c << ["LOWER(firstname) LIKE ?", firstname]
-    end
-
-    unless params[:lastname].blank?
-      lastname = "%#{params[:lastname].strip.downcase}%"
-      c << ["LOWER(lastname) LIKE ?", lastnames]
-    end
-    
     unless params[:name].blank?
       name = "%#{params[:name].strip.downcase}%"
       c << ["LOWER(login) LIKE ? OR LOWER(firstname) LIKE ? OR LOWER(lastname) LIKE ? OR LOWER(mail) LIKE ?", name, name, name, name]
