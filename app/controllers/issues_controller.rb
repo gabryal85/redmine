@@ -84,11 +84,7 @@ class IssuesController < ApplicationController
 
       accepted_params_arr = ["start_date", "due_date"]
 
-      attribute = unless params[:attribute].blank?
-        accepted_params_arr.find{|e| e==params[:attribute]} || "start_date"
-      else
-        "start_date"
-      end
+      attribute = accepted_params_arr.find{|e| e==params[:attribute]} || "start_date"
         
       from = case params[:from]
       when nil then nil
@@ -111,7 +107,7 @@ class IssuesController < ApplicationController
           head :bad_request
         end
       end
-
+      
       if !from.nil? && !to.nil?
 #        c << ["LOWER(start_date) BETWEEN ? AND ?", "#{from.strftime("%Y-%m-%d")}", "#{to.strftime("%Y-%m-%d")}"]
         c << ["LOWER(#{attribute}) BETWEEN \"#{from.strftime("%Y-%m-%d")}\" AND \"#{to.strftime("%Y-%m-%d")}\""]
