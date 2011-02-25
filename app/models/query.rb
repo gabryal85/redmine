@@ -497,19 +497,19 @@ class Query < ActiveRecord::Base
   end
   
   # Returns the issue count
-  def issue_count
-    Issue.count(:include => [:status, :project], :conditions => statement)
+  def issue_count(c = ARCondition.new.conditions)
+    Issue.count(:include => [:status, :project], :conditions => statement + " AND " + c.to_s)
   rescue ::ActiveRecord::StatementInvalid => e
     raise StatementInvalid.new(e.message)
   end
   
   # Returns the issue count by group or nil if query is not grouped
-  def issue_count_by_group
+  def issue_count_by_group(c = ARCondition.new.conditions)
     r = nil
     if grouped?
       begin
         # Rails will raise an (unexpected) RecordNotFound if there's only a nil group value
-        r = Issue.count(:group => group_by_statement, :include => [:status, :project], :conditions => statement)
+        r = Issue.count(:group => group_by_statement, :include => [:status, :project], :conditions => statement + " AND " + c.to_s)
       rescue ActiveRecord::RecordNotFound
         r = {nil => issue_count}
       end

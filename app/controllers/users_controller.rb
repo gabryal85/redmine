@@ -44,10 +44,10 @@ class UsersController < ApplicationController
     #show user account based on multiple parameters
     #login, firstname, lastname, mail
 
-    cp_arr = ["login", "mail", "firstname", "lastname"];
+    accepted_params_arr = ["login", "mail", "firstname", "lastname"];
 
     params.each do |key, val|
-      if cp_arr.find{|e| e == key} && !params[key].blank?
+      if accepted_params_arr.find{|e| e == key} && !params[key].blank?
         instance_variable_set("@#{key}", "%#{val.strip.downcase}%")
         c << ["LOWER(#{key}) LIKE ?", instance_variable_get("@#{key}")]
       end

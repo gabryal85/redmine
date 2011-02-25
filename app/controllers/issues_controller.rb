@@ -77,15 +77,63 @@ class IssuesController < ApplicationController
       else
         @limit = per_page_option
       end
-      
-      @issue_count = @query.issue_count
+
+      c = ARCondition.new()
+
+      #show issues between two dates
+
+      accepted_params_arr = ["start_date", "due_date"]
+
+      attribute = unless params[:attribute].blank?
+        accepted_params_arr.find{|e| e==params[:attribute]} || "start_date"
+      else
+        "start_date"
+      end
+        
+      from = case params[:from]
+      when nil then nil
+      when Date then params[:from]
+      else
+        begin
+          Date.parse(params[:from])
+        rescue
+          head :bad_request
+        end
+      end
+
+      to = case params[:to]
+      when nil then nil
+      when Date then params[:to]
+      else
+        begin
+          Date.parse(params[:to])
+        rescue
+          head :bad_request
+        end
+      end
+
+      if !from.nil? && !to.nil?
+#        c << ["LOWER(start_date) BETWEEN ? AND ?", "#{from.strftime("%Y-%m-%d")}", "#{to.strftime("%Y-%m-%d")}"]
+        c << ["LOWER(#{attribute}) BETWEEN \"#{from.strftime("%Y-%m-%d")}\" AND \"#{to.strftime("%Y-%m-%d")}\""]
+      end
+
+      if !from.nil? && to.nil?
+        c << ["LOWER(#{attribute}) >= \"#{from.strftime("%Y-%m-%d")}\""]
+      end
+
+      if !to.nil? && from.nil?
+        c << ["LOWER(#{attribute}) <= \"#{to.strftime("%Y-%m-%d")}\""]
+      end
+
+      @issue_count = @query.issue_count(c.conditions)
       @issue_pages = Paginator.new self, @issue_count, @limit, params['page']
       @offset ||= @issue_pages.current.offset
       @issues = @query.issues(:include => [:assigned_to, :tracker, :priority, :category, :fixed_version],
-                              :order => sort_clause, 
+                              :order => sort_clause,
+                              :conditions => c.conditions,
                               :offset => @offset, 
                               :limit => @limit)
-      @issue_count_by_group = @query.issue_count_by_group
+      @issue_count_by_group = @query.issue_count_by_group(c.conditions)
       
       respond_to do |format|
         format.html { render :template => 'issues/index.rhtml', :layout => !request.xhr? }
