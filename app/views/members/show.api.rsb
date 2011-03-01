@@ -1,0 +1,18 @@
+api.array :members, api_meta(:total_count => @member_count, :offset => @offset, :limit => @limit) do
+  @members.each do |member|
+    api.member do
+      api.id                    member.id
+      api.user_id               member.user_id
+      api.created_on            member.created_on
+      api.mail_notification     member.mail_notification
+      api.name                  member.user
+      api.username              member.user.login unless member.user.nil?
+      api.mail                  member.user.mail unless member.user.nil?
+      api.roles do
+        member.roles.each do |role|
+            api.role            role
+        end
+      end
+    end
+  end
+end

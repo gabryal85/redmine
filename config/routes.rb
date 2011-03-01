@@ -23,7 +23,7 @@ ActionController::Routing::Routes.draw do |map|
 
   # TODO: wasteful since this is also nested under issues, projects, and projects/issues
   map.resources :time_entries, :controller => 'timelog'
-  
+
   map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
@@ -97,7 +97,7 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :issues, :member => { :edit => :post }, :collection => {} do |issues|
     issues.resources :time_entries, :controller => 'timelog'
   end
-  
+
   map.resources :issues, :path_prefix => '/projects/:project_id', :collection => { :create => :post } do |issues|
     issues.resources :time_entries, :controller => 'timelog'
   end
@@ -107,11 +107,16 @@ ActionController::Routing::Routes.draw do |map|
     relations.connect 'issues/:issue_id/relations/:id/destroy', :action => 'destroy'
   end
 
+  map.resources :members, :path_prefix => '/projects/:project_id/settings', :collections => { :index => [:get] } do |members|
+
+  end
+
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
+  map.connect 'projects/:id/members.:format', :controller => 'members', :action => 'show'
 
   map.with_options :controller => 'users' do |users|
     users.connect 'users/:id/edit/:tab', :action => 'edit', :tab => nil, :conditions => {:method => :get}
-    
+
     users.with_options :conditions => {:method => :post} do |user_actions|
       user_actions.connect 'users/:id/memberships', :action => 'edit_membership'
       user_actions.connect 'users/:id/memberships/:membership_id', :action => 'edit_membership'
@@ -123,6 +128,8 @@ ActionController::Routing::Routes.draw do |map|
     :edit_membership => :post,
     :destroy_membership => :post
   }
+
+  
 
   # For nice "roadmap" in the url for the index action
   map.connect 'projects/:project_id/roadmap', :controller => 'versions', :action => 'index'
@@ -171,10 +178,11 @@ ActionController::Routing::Routes.draw do |map|
   map.with_options :controller => 'projects' do |project_mapper|
     project_mapper.with_options :conditions => {:method => :get} do |project_views|
       project_views.connect 'projects/:id/settings/:tab', :controller => 'projects', :action => 'settings'
+      #project_views.connect 'projects/:id/settings/:tab.:format', :controller => 'projects', :action => 'settings'
       project_views.connect 'projects/:project_id/issues/:copy_from/copy', :controller => 'issues', :action => 'new'
     end
   end
-  
+
   map.with_options :controller => 'activities', :action => 'index', :conditions => {:method => :get} do |activity|
     activity.connect 'projects/:id/activity'
     activity.connect 'projects/:id/activity.:format'

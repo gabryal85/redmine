@@ -21,6 +21,7 @@ class MembersController < ApplicationController
   before_filter :find_project_from_association, :except => [:new, :autocomplete_for_member]
   before_filter :find_project, :only => [:new, :autocomplete_for_member]
   before_filter :authorize
+  accept_key_auth :show
 
   def new
     members = []
@@ -97,4 +98,21 @@ class MembersController < ApplicationController
     render :layout => false
   end
 
+  def show
+#    @status = params[:status] ? params[:status].to_i : 1
+#    c = ARCondition.new(@status == 0 ? "status <> 0" : ["status = ?", @status])
+
+    c = ARCondition.new
+
+    respond_to do |format|
+      format.api{
+        @offset, @limit = api_offset_and_limit
+        @member_count = Member.count(:conditions => ["project_id = ?", @project.id])
+        @members = Member.find_all_by_project_id @project.id ,
+                                                 :offset => @offset,
+                                                 :limit => @limit,
+                                                 :include => [:user, :roles]
+      }
+    end
+  end
 end
