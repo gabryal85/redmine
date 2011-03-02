@@ -6,8 +6,8 @@ api.array :members, api_meta(:total_count => @member_count, :offset => @offset, 
       api.created_on            member.created_on
       api.mail_notification     member.mail_notification
       api.name                  member.user
-      api.username              member.user.login unless member.user.nil?
-      api.mail                  member.user.mail unless member.user.nil?
+      api.username              member.user.login if member.user.present?
+      api.mail                  member.user.mail if member.user.present?
       api.roles do
         member.roles.each do |role|
             api.role            role

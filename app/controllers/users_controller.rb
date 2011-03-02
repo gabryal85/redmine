@@ -47,13 +47,12 @@ class UsersController < ApplicationController
     accepted_params_arr = ["login", "mail", "firstname", "lastname"];
 
     params.each do |key, val|
-      if accepted_params_arr.find{|e| e == key} && !params[key].blank?
-        instance_variable_set("@#{key}", "%#{val.strip.downcase}%")
-        c << ["LOWER(#{key}) LIKE ?", instance_variable_get("@#{key}")]
+      if accepted_params_arr.find{|e| e == key} && params[key].present?
+        c << ["LOWER(#{key}) LIKE ?", "%#{val.strip.downcase}%"]
       end
     end
 
-    unless params[:name].blank?
+    if params[:name].present?
       name = "%#{params[:name].strip.downcase}%"
       c << ["LOWER(login) LIKE ? OR LOWER(firstname) LIKE ? OR LOWER(lastname) LIKE ? OR LOWER(mail) LIKE ?", name, name, name, name]
     end

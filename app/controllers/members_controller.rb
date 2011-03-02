@@ -106,13 +106,12 @@ class MembersController < ApplicationController
     accepted_params_arr = ["user_id", "login", "mail", "firstname", "lastname"];
 
     params.each do |key, val|
-      if accepted_params_arr.find{|e| e == key} && !params[key].blank?
-        instance_variable_set("@#{key}", "%#{val.strip.downcase}%")
-        c << ["LOWER(#{key}) LIKE ?", instance_variable_get("@#{key}")]
+      if accepted_params_arr.find{|e| e == key} && params[key].present?
+        c << ["LOWER(#{key}) LIKE ?", "%#{val.strip.downcase}%"]
       end
     end
 
-    unless params[:role].blank?
+    if params[:role].present?
       role = "%#{params[:role].strip.downcase}%"
       c << ["LOWER(#{Role.table_name}.name) LIKE ?", role]
     end
