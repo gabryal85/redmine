@@ -99,19 +99,35 @@ class MembersController < ApplicationController
   end
 
   def show
-#    @status = params[:status] ? params[:status].to_i : 1
-#    c = ARCondition.new(@status == 0 ? "status <> 0" : ["status = ?", @status])
+    @status = params[:status] ? params[:status].to_i : 1
+    c = ARCondition.new(@status == 0 ? "#{User.table_name}.status <> 0" : ["#{User.table_name}.status = ?", @status])
+    c << ["project_id = ?", params["id"]]
 
-    c = ARCondition.new
+    accepted_params_arr = ["user_id", "login", "mail", "firstname", "lastname"];
+
+    params.each do |key, val|
+      if accepted_params_arr.find{|e| e == key} && !params[key].blank?
+        instance_variable_set("@#{key}", "%#{val.strip.downcase}%")
+        c << ["LOWER(#{key}) LIKE ?", instance_variable_get("@#{key}")]
+      end
+    end
+
+    unless params[:role].blank?
+      role = "%#{params[:role].strip.downcase}%"
+      c << ["LOWER(#{Role.table_name}.name) LIKE ?", role]
+    end
 
     respond_to do |format|
       format.api{
         @offset, @limit = api_offset_and_limit
-        @member_count = Member.count(:conditions => ["project_id = ?", @project.id])
-        @members = Member.find_all_by_project_id @project.id ,
-                                                 :offset => @offset,
-                                                 :limit => @limit,
-                                                 :include => [:user, :roles]
+        @member_count = Member.count :include => [:user, :roles],
+                                     :conditions => c.conditions
+
+        @members = Member.find :all,
+                               :offset => @offset,
+                               :limit => @limit,
+                               :include => [:user, :roles],
+                               :conditions => c.conditions
       }
     end
   end

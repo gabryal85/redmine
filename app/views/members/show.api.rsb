@@ -13,6 +13,6 @@ api.array :members, api_meta(:total_count => @member_count, :offset => @offset, 
             api.role            role
         end
       end
-    end
+    end 
   end
 end
